@@ -20,5 +20,10 @@ export default class User {
    private dateOfBirth: Date | null = null;
    private joined: Date = new Date();
    private location: Location | null = null;
+   private admin: boolean = false;
+
+   get isAdmin() { return this.admin; }
+   
+   set isAdmin(isAdminUser: boolean) { this.admin = isAdminUser; }
 }
 
