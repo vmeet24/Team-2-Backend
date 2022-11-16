@@ -15,18 +15,13 @@ import LikeDao from './mongoose/LikeDao';
 import MessageDao from './mongoose/MessageDao';
 import TuitDao from './mongoose/TuitDao';
 import UserDao from './mongoose/UserDao';
+
 const cors = require('cors');
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 mongoose.connect(`mongodb+srv://${process.env.USER}:${process.env.PASS}@cluster0.2q2gfmo.mongodb.net/FSE?retryWrites=true&w=majority`);
-// client.connect((err: any) => {
-//     const collection = client.db("test").collection("devices");
-//     // perform actions on the collection object
-//     client.close();
-// });
-
 
 const userDao = new UserDao();
 new UserController(app, userDao);
