@@ -41,7 +41,6 @@ if (process.env.ENV === 'PRODUCTION') {
 }
 
 const session = require("express-session");
-const cors = require('cors');
 
 app.use(cors({
     credentials: true,
