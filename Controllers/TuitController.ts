@@ -14,7 +14,7 @@ export default class TuitController implements ITuitController {
         this.app.get('/api/tuits', this.findAllTuits);
         this.app.get('/api/tuits/:tuitid', this.findTuitById);
         this.app.get('/api/users/:userid/tuits', this.findTuitsByUser);
-        this.app.post('/api/users/:userid/tuits', this.createTuit);
+        this.app.post('/api/users/:userid/tuits', this.createTuitByUser);
         this.app.put('/api/tuits/:tuitid', this.updateTuit);
         this.app.delete('/api/tuits/:tuitid', this.deleteTuit);
 
@@ -28,14 +28,6 @@ export default class TuitController implements ITuitController {
     }
     findTuitById = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
         const tuit = await this.tuitDao.findTuitById(req.params.tuitid);
-        res.json(tuit);
-    }
-    findTuitsByUser = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
-        const tuits = await this.tuitDao.findTuitsByUser(req.params.userid);
-        res.json(tuits);
-    }
-    createTuit = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
-        const tuit = await this.tuitDao.createTuit(req.params.userid, req.body);
         res.json(tuit);
     }
     updateTuit = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
@@ -56,5 +48,22 @@ export default class TuitController implements ITuitController {
         const result = await this.tuitDao.deleteTuitByUserId(req.params.uid);
         res.json(result);
     }
+    createTuitByUser = async (req: any, res: any) => {
+        let userId = req.params.userid === "me"
+            && req.session['profile'] ?
+            req.session['profile']._id :
+            req.params.uid;
+        const tuit = await this.tuitDao.createTuit(userId, req.body);
+        res.json(tuit);
+    }
 
+    findTuitsByUser = async (req: any, res: any) => {
+        let userId = req.params.userid === "me"
+            && req.session['profile'] ?
+            req.session['profile']._id :
+            req.params.uid;
+
+        const tuit = await this.tuitDao.findTuitsByUser(userId);
+        res.json(tuit);
+    }
 }

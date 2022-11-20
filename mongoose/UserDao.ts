@@ -61,6 +61,15 @@ export default class UserDao implements IUserDao {
     }
 
     /**
+     * Finds user with the given username from the database.
+     * @returns Promise To be notified when the user with given username is found from the
+     * database
+     */
+     async findUserByUsername(username: string): Promise<any> {
+        return UserModel.findOne({ username });
+    }
+
+    /**
      * Removes user with the given username from the database. Useful for testing
      * @returns Promise To be notified when the user with given username are removed from the
      * database
