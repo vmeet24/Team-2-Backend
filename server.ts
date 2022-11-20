@@ -21,6 +21,8 @@ import LikeDao from './mongoose/LikeDao';
 import MessageDao from './mongoose/MessageDao';
 import TuitDao from './mongoose/TuitDao';
 import UserDao from './mongoose/UserDao';
+
+const cors = require('cors');
 const app = express();
 
 let sess = {
@@ -39,7 +41,6 @@ if (process.env.ENV === 'PRODUCTION') {
 }
 
 const session = require("express-session");
-const cors = require('cors');
 
 app.use(cors({
     credentials: true,
@@ -49,12 +50,6 @@ app.use(session(sess))
 app.use(express.json());
 
 mongoose.connect(`mongodb+srv://${process.env.USER}:${process.env.PASS}@cluster0.2q2gfmo.mongodb.net/FSE?retryWrites=true&w=majority`);
-// client.connect((err: any) => {
-//     const collection = client.db("test").collection("devices");
-//     // perform actions on the collection object
-//     client.close();
-// });
-
 
 const userDao = new UserDao();
 AuthenticationController(app, userDao);

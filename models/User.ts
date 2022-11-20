@@ -20,5 +20,6 @@ export default interface User {
    dateOfBirth: Date | null;
    joined: Date;
    location: Location | null;
+   admin: boolean;
 }
 
