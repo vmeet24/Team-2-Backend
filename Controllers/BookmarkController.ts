@@ -44,7 +44,7 @@ export default class BookmarkController implements IBookmarkController {
      */
     parseUserId = (req: Request) => {
         const profile = req.session['profile'];
-        return req.params.uid === "me" && profile ? profile.id : req.params.uid;
+        return req.params.uid === "me" && profile ? profile._id : req.params.uid;
     }
 
     /**

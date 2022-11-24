@@ -13,14 +13,12 @@ export default class TuitController implements ITuitController {
         this.tuitDao = tuitDao;
         this.app.get('/api/tuits', this.findAllTuits);
         this.app.get('/api/tuits/:tuitid', this.findTuitById);
-        this.app.get('/api/users/:userid/tuits', this.findTuitsByUser);
-        this.app.post('/api/users/:userid/tuits', this.createTuitByUser);
+        this.app.get('/api/users/:uid/tuits', this.findTuitsByUser);
+        this.app.post('/api/users/:uid/tuits', this.createTuitByUser);
         this.app.put('/api/tuits/:tuitid', this.updateTuit);
         this.app.delete('/api/tuits/:tuitid', this.deleteTuit);
-
-        app.delete("/api/tuits/:uid/delete", this.deleteTuitByUserId);
+        this.app.delete("/api/tuits/:uid/delete", this.deleteTuitByUserId);
     }
-
 
     findAllTuits = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
         const tuits = await this.tuitDao.findAllTuits();
@@ -48,18 +46,16 @@ export default class TuitController implements ITuitController {
         const result = await this.tuitDao.deleteTuitByUserId(req.params.uid);
         res.json(result);
     }
-    createTuitByUser = async (req: any, res: any) => {
-        let userId = req.params.userid === "me"
-            && req.session['profile'] ?
+    createTuitByUser = async (req: Request, res: Response) => {
+        let userId = req.params.uid === "me" && req.session['profile'] ?
             req.session['profile']._id :
             req.params.uid;
         const tuit = await this.tuitDao.createTuit(userId, req.body);
         res.json(tuit);
     }
 
-    findTuitsByUser = async (req: any, res: any) => {
-        let userId = req.params.userid === "me"
-            && req.session['profile'] ?
+    findTuitsByUser = async (req: Request, res: Response) => {
+        let userId = req.params.uid === "me" && req.session['profile'] ?
             req.session['profile']._id :
             req.params.uid;
 

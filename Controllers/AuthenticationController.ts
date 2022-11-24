@@ -1,13 +1,12 @@
-import { Express } from "express";
+import { Express, Request, Response } from "express";
 import IUserDao from "../interfaces/IUserDao";
-
 
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 const AuthenticationController = (app: Express, userDao: IUserDao) => {
 
-  const login = async (req: any, res: any) => {
+  const login = async (req: Request, res: Response) => {
 
     const user = req.body;
     const username = user.username;
@@ -32,7 +31,7 @@ const AuthenticationController = (app: Express, userDao: IUserDao) => {
     }
   };
 
-  const signup = async (req: any, res: any) => {
+  const signup = async (req: Request, res: Response) => {
     const newUser = req.body;
     const password = newUser.password;
     const hash = await bcrypt.hash(password, saltRounds);
@@ -52,7 +51,7 @@ const AuthenticationController = (app: Express, userDao: IUserDao) => {
     }
   }
 
-  const profile = (req: any, res: any) => {
+  const profile = (req: Request, res: Response) => {
     const profile = req.session['profile'];
     if (profile) {
       profile.password = "";
@@ -62,8 +61,12 @@ const AuthenticationController = (app: Express, userDao: IUserDao) => {
     }
   }
 
-  const logout = (req: any, res: any) => {
-    req.session.destroy();
+  const logout = (req: Request, res: Response) => {
+    req.session.destroy((error) => {
+      if (error) {
+        console.log(error)
+      }
+    });
     res.sendStatus(200);
   }
 

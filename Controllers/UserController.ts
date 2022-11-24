@@ -15,8 +15,18 @@ export default class UserController implements IUserController {
         this.app.post('/api/users', this.createUser);
         this.app.delete('/api/users/:userid', this.deleteUser);
         this.app.put('/api/users/:userid', this.updateUser);
+        this.app.delete("/api/users/username/:username/delete", this.deleteUsersByUsername);
+    }
 
-        app.delete("/api/users/username/:username/delete", this.deleteUsersByUsername);
+    /**
+     * Checks a given request for the keyword "me" and returns the id of the currently signed
+     * in user. Otherwise returns the uid from the request iself.
+     * @param {Request} req The given HTTP request object one of our endpoints receives
+     * @returns {string} The ID of the user making the request
+     */
+    parseUserId = (req: Request) => {
+        const profile = req.session['profile'];
+        return req.params.userid === "me" && profile ? profile._id : req.params.userid;
     }
 
     findAllUsers = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
