@@ -37,6 +37,17 @@ export default class BookmarkController implements IBookmarkController {
     }
 
     /**
+     * Checks a given request for the keyword "me" and returns the id of the currently signed 
+     * in user. Otherwise returns the uid from the request iself.
+     * @param {Request} req The given HTTP request object one of our endpoints receives
+     * @returns {string} The ID of the user making the request
+     */
+    parseUserId = (req: Request) => {
+        const profile = req.session['profile'];
+        return req.params.uid === "me" && profile ? profile._id : req.params.uid;
+    }
+
+    /**
      * Retrieves all tuits bookmarked by a user from the database
      * @param {Request} req Represents request from client, including the path
      * parameter uid representing the user bookmarked the tuits
@@ -44,7 +55,8 @@ export default class BookmarkController implements IBookmarkController {
      * body formatted as JSON arrays containing the tuit objects that were bookmarked
      */
     findAllTuitsBookmarkedByUser = async (req: Request, res: Response) => {
-        const tuits = await this.bookmarkDao.findAllTuitsBookmarkedByUser(req.params.uid);
+        const uid = this.parseUserId(req);
+        const tuits = await this.bookmarkDao.findAllTuitsBookmarkedByUser(uid);
         res.json(tuits);
     }
 
@@ -57,7 +69,8 @@ export default class BookmarkController implements IBookmarkController {
      * database
      */
     userBookmarksTuit = async (req: Request, res: Response) => {
-        const tuit = await this.bookmarkDao.userBookmarksTuit(req.params.tid, req.params.uid);
+        const uid = this.parseUserId(req);
+        const tuit = await this.bookmarkDao.userBookmarksTuit(req.params.tid, uid);
         res.json(tuit);
     }
 
@@ -69,7 +82,8 @@ export default class BookmarkController implements IBookmarkController {
      * on whether deleting the bookmark was successful or not
      */
     userUnbookmarksTuit = async (req: Request, res: Response) => {
-        const result = await this.bookmarkDao.userUnbookmarksTuit(req.params.tid, req.params.uid);
+        const uid = this.parseUserId(req);
+        const result = await this.bookmarkDao.userUnbookmarksTuit(req.params.tid, uid);
         res.json(result);
     }
 }
