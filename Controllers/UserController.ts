@@ -72,8 +72,16 @@ export default class UserController implements IUserController {
                     await this.followsDao.userUnFollowsAnotherUser(following[i].userFollowing.toString(), following[i].userFollowed.toString());
                 }
 
+                //Remove all the tuits by user
+                await this.tuitDao.deleteTuitByUserId(user._id);
 
-            
+                //Remove all the Bookmark entries
+                const bookmarks = await this.bookmarkDao.findAllTuitsBookmarkedByUser(user._id);
+                for (let i = 0; i < bookmarks.length; i++) {
+                    await this.bookmarkDao.userUnbookmarksTuit(bookmarks[i].bookmarkedTuit.toString(), bookmarks[i].bookmarkedBy.toString());
+                }
+
+
 
                 res.json(user);
 
