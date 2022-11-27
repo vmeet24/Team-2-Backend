@@ -3,13 +3,22 @@ import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 import IUserController from "../interfaces/IUserController";
 import IUserDao from "../interfaces/IUserDao";
+import BookmarkDao from "../mongoose/BookmarkDao";
+import FollowDao from "../mongoose/FollowDao";
+import TuitDao from "../mongoose/TuitDao";
 
 export default class UserController implements IUserController {
     private app: Express;
     private userDao: IUserDao;
-    constructor(app: Express, userDao: IUserDao) {
+    private followsDao: FollowDao;
+    private tuitDao: TuitDao;
+    private bookmarkDao: BookmarkDao;
+    constructor(app: Express, userDao: IUserDao, followsDao: FollowDao, tuitDao: TuitDao, bookmarksDao: BookmarkDao) {
         this.app = app;
         this.userDao = userDao;
+        this.followsDao = followsDao;
+        this.tuitDao = tuitDao;
+        this.bookmarkDao = bookmarksDao;
         this.app.get('/api/users', this.findAllUsers);
         this.app.get('/api/users/:userid', this.findUserById);
         this.app.post('/api/users', this.createUser);
@@ -42,9 +51,36 @@ export default class UserController implements IUserController {
         res.json(user);
     }
     deleteUser = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
-        const user = await this.userDao.deleteUser(req.params.userid);
-        res.json(user);
+        const userDeletingId = req.session['profile']._id;
+        const userDeletingObj = await this.userDao.findUserById(userDeletingId);
+        const userToBeDeleted = req.params.userid;
+        if (userDeletingObj) {
+            if (userDeletingObj.admin || userDeletingId === userToBeDeleted) {
+                const user = await this.userDao.deleteUser(userToBeDeleted);
+
+
+
+                //Remove all the follow entries where user is being followed by other users
+                const followedBy = await this.followsDao.findAllUsersThatUserIsFollowedBy(user._id);
+                for (let i = 0; i < followedBy.length; i++) {
+                    await this.followsDao.userUnFollowsAnotherUser(followedBy[i].userFollowing.toString(), followedBy[i].userFollowed.toString());
+                }
+
+
+                res.json(user);
+
+            }
+
+            else {
+                res.sendStatus(403);
+            }
+
+        }
+        else {
+            res.sendStatus(403);
+        }
     }
+
     updateUser = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
         const users = await this.userDao.updateUser(req.params.userid, req.body);
         res.json(users);
