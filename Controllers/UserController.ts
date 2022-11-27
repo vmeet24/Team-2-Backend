@@ -66,15 +66,23 @@ export default class UserController implements IUserController {
                     await this.followsDao.userUnFollowsAnotherUser(followedBy[i].userFollowing.toString(), followedBy[i].userFollowed.toString());
                 }
 
+                //Remove all the follow entries where user is following other users
+                const following = await this.followsDao.findAllUsersThatUserIsFollowing(user._id);
+                for (let i = 0; i < following.length; i++) {
+                    await this.followsDao.userUnFollowsAnotherUser(following[i].userFollowing.toString(), following[i].userFollowed.toString());
+                }
+
+
+            
 
                 res.json(user);
 
-            }
 
+
+            }
             else {
                 res.sendStatus(403);
             }
-
         }
         else {
             res.sendStatus(403);
