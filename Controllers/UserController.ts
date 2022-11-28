@@ -29,9 +29,24 @@ export default class UserController implements IUserController {
         return req.params.userid === "me" && profile ? profile._id : req.params.userid;
     }
 
+    /**
+     * Retrieves all users from the database and returns an array of users.
+     * @param {Request} req Represents request from client
+     * @param {Response} res Represents response to client, including the
+     * body formatted as JSON arrays containing the user objects
+     */
     findAllUsers = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
-        const users = await this.userDao.findAllUsers();
-        res.json(users);
+        if (req?.session['profile']) {
+            const user = req?.session['profile'];
+            if (user.admin) {
+                const users = await this.userDao.findAllUsers();
+                res.json(users);
+            } else {
+                res.status(403).send("Sorry, only admin can access all the users");
+            }
+        }else{
+            res.status(400).send("Sorry, session failed, try to login again!");
+        }
     }
     findUserById = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
         const user = await this.userDao.findUserById(req.params.userid);
