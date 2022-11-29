@@ -49,10 +49,8 @@ app.use(cors({
 app.use(session(sess))
 app.use(express.json());
 
-const user = "vmeet24";
-const userPass = "c1K7QUUbJcferkyi";
 
-mongoose.connect(`mongodb+srv://${user}:${userPass}@cluster0.2q2gfmo.mongodb.net/FSE?retryWrites=true&w=majority`);
+mongoose.connect(`mongodb+srv://${process.env.USER}:${process.env.PASS}@cluster0.2q2gfmo.mongodb.net/FSE?retryWrites=true&w=majority`);
 
 const userDao = new UserDao();
 AuthenticationController(app, userDao);
