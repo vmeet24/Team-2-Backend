@@ -21,7 +21,7 @@ export default class FollowDao implements IFollowDao {
      * @returns Promise when the user data is available from the database
      */
     async findAllUsersThatUserIsFollowing(uid: string): Promise<Follow[]> {
-        return FollowModel.find({ userFollowing: uid }, { userFollowing: 0 }).populate("userFollowed").exec();
+        return FollowModel.find({ userFollowing: uid }).populate("userFollowed").exec();
     }
 
     /**
@@ -30,7 +30,7 @@ export default class FollowDao implements IFollowDao {
      * @returns Promise when the user data is available from the database
      */
     async findAllUsersThatUserIsFollowedBy(uid: string): Promise<Follow[]> {
-        return FollowModel.find({ userFollowed: uid }, { userFollowed: 0 }).populate("userFollowing").exec();
+        return FollowModel.find({ userFollowed: uid }).populate("userFollowing").exec();
     }
 
     /**

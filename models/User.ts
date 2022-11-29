@@ -6,7 +6,8 @@ import AccountType from "./AccountType";
 import MaritalStatus from "./MaritalStatus";
 import Location from "./Location";
 
-export default interface User {
+export default interface User{
+   _id: string;
    username: string;
    password: string;
    firstName: string | null;

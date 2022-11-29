@@ -3,8 +3,10 @@ import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 import IUserController from "../interfaces/IUserController";
 import IUserDao from "../interfaces/IUserDao";
+import Like from "../models/Like";
 import BookmarkDao from "../mongoose/BookmarkDao";
 import FollowDao from "../mongoose/FollowDao";
+import LikeDao from "../mongoose/LikeDao";
 import TuitDao from "../mongoose/TuitDao";
 
 export default class UserController implements IUserController {
@@ -13,12 +15,14 @@ export default class UserController implements IUserController {
     private followsDao: FollowDao;
     private tuitDao: TuitDao;
     private bookmarkDao: BookmarkDao;
-    constructor(app: Express, userDao: IUserDao, followsDao: FollowDao, tuitDao: TuitDao, bookmarksDao: BookmarkDao) {
+    private likeDao: LikeDao;
+    constructor(app: Express, userDao: IUserDao, followsDao: FollowDao, tuitDao: TuitDao, bookmarksDao: BookmarkDao, likeDao: LikeDao) {
         this.app = app;
         this.userDao = userDao;
         this.followsDao = followsDao;
         this.tuitDao = tuitDao;
         this.bookmarkDao = bookmarksDao;
+        this.likeDao = likeDao;
         this.app.get('/api/users', this.findAllUsers);
         this.app.get('/api/users/:userid', this.findUserById);
         this.app.post('/api/users', this.createUser);
@@ -51,37 +55,58 @@ export default class UserController implements IUserController {
         res.json(user);
     }
     deleteUser = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
-        const userDeletingId = req.session['profile']._id;
+        const userDeletingId = "63858a59bffdb02c1ec4cfca"; //req.session['profile']._id
         const userDeletingObj = await this.userDao.findUserById(userDeletingId);
         const userToBeDeleted = req.params.userid;
+
+
         if (userDeletingObj) {
             if (userDeletingObj.admin || userDeletingId === userToBeDeleted) {
-                const user = await this.userDao.deleteUser(userToBeDeleted);
+
 
 
 
                 //Remove all the follow entries where user is being followed by other users
-                const followedBy = await this.followsDao.findAllUsersThatUserIsFollowedBy(user._id);
+                const followedBy = await this.followsDao.findAllUsersThatUserIsFollowedBy(userToBeDeleted);
+
+
                 for (let i = 0; i < followedBy.length; i++) {
-                    await this.followsDao.userUnFollowsAnotherUser(followedBy[i].userFollowing.toString(), followedBy[i].userFollowed.toString());
+                    await this.followsDao.userUnFollowsAnotherUser(followedBy[i].userFollowing._id, followedBy[i].userFollowed._id);
                 }
 
                 //Remove all the follow entries where user is following other users
-                const following = await this.followsDao.findAllUsersThatUserIsFollowing(user._id);
+                const following = await this.followsDao.findAllUsersThatUserIsFollowing(userToBeDeleted);
+
                 for (let i = 0; i < following.length; i++) {
-                    await this.followsDao.userUnFollowsAnotherUser(following[i].userFollowing.toString(), following[i].userFollowed.toString());
+                    await this.followsDao.userUnFollowsAnotherUser(following[i].userFollowing._id, following[i].userFollowed._id);
                 }
 
-                //Remove all the tuits by user
-                await this.tuitDao.deleteTuitByUserId(user._id);
 
                 //Remove all the Bookmark entries
-                const bookmarks = await this.bookmarkDao.findAllTuitsBookmarkedByUser(user._id);
+                const bookmarks = await this.bookmarkDao.findAllTuitsBookmarkedByUser(userToBeDeleted);
+
+
                 for (let i = 0; i < bookmarks.length; i++) {
-                    await this.bookmarkDao.userUnbookmarksTuit(bookmarks[i].bookmarkedTuit.toString(), bookmarks[i].bookmarkedBy.toString());
+                    await this.bookmarkDao.userUnbookmarksTuit(bookmarks[i].bookmarkedTuit._id, bookmarks[i].bookmarkedBy._id);
                 }
 
+                
 
+                //Get All the tuits
+                const tuits = await this.tuitDao.findTuitsByUser(userToBeDeleted);
+
+                //Remove Likes
+                for (let i = 0; i < tuits.length; i++) {
+                    await this.likeDao.userUnlikesTuitByTuit(tuits[i]._id);
+                }
+
+                await this.likeDao.userUnlikesTuitByUser(userToBeDeleted);
+
+
+                //Remove all the tuits by user
+                await this.tuitDao.deleteTuitByUserId(userToBeDeleted);
+
+                const user = await this.userDao.deleteUser(userToBeDeleted);
 
                 res.json(user);
 
@@ -89,7 +114,7 @@ export default class UserController implements IUserController {
 
             }
             else {
-                res.sendStatus(403);
+                res.sendStatus(404);
             }
         }
         else {
