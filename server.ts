@@ -49,14 +49,11 @@ app.use(cors({
 app.use(session(sess))
 app.use(express.json());
 
+
 mongoose.connect(`mongodb+srv://${process.env.USER}:${process.env.PASS}@cluster0.2q2gfmo.mongodb.net/FSE?retryWrites=true&w=majority`);
 
 const userDao = new UserDao();
 AuthenticationController(app, userDao);
-new UserController(app, userDao);
-
-const tuitDao = new TuitDao();
-new TuitController(app, tuitDao);
 
 const likesDao = new LikeDao();
 new LikeController(app, likesDao);
@@ -69,6 +66,12 @@ new BookmarkController(app, bookmarkDao);
 
 const messageDao = new MessageDao();
 new MessageController(app, messageDao);
+
+const tuitDao = new TuitDao();
+new TuitController(app, tuitDao, bookmarkDao, likesDao, userDao);
+
+
+new UserController(app, userDao, followDao, tuitDao, bookmarkDao, likesDao);
 
 app.get('/', (req: Request, res: Response) =>
     res.send('Welcome to Foundation of Software Engineering!!!!'));

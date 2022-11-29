@@ -4,9 +4,10 @@
  */
 
 import mongoose from "mongoose";
+import Tuit from "../models/Tuit";
 import TuitSchema from "./TuitSchema";
 
 
-const TuitModel = mongoose.model('TuitModel', TuitSchema);
+const TuitModel = mongoose.model<Tuit>('TuitModel', TuitSchema);
 
 export default TuitModel;

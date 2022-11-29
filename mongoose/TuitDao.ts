@@ -47,7 +47,7 @@ export default class TuitDao implements ITuitDao {
      * @returns Promise To be notified when tuit is inserted into the database
      */
     async createTuit(userid: string, tuit: Tuit): Promise<Tuit> {
-        return await TuitModel.create({ ...tuit, postedBy: userid });
+        return await TuitModel.create({ ...tuit, postedBy: userid, postedOn: Date.now() });
     }
 
     /**

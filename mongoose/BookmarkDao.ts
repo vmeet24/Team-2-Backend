@@ -8,6 +8,7 @@ import Bookmark from "../models/Bookmark";
 import BookmarkModel from "./BookmarkModel";
 
 export default class BookmarkDao implements IBookmarkDao {
+    
 
     /**
      * Retrieve all tuits from bookmarks collection bookmarked by a user
