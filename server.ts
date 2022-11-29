@@ -57,10 +57,6 @@ mongoose.connect(`mongodb+srv://${user}:${userPass}@cluster0.2q2gfmo.mongodb.net
 const userDao = new UserDao();
 AuthenticationController(app, userDao);
 
-
-const tuitDao = new TuitDao();
-new TuitController(app, tuitDao);
-
 const likesDao = new LikeDao();
 new LikeController(app, likesDao);
 
@@ -72,6 +68,10 @@ new BookmarkController(app, bookmarkDao);
 
 const messageDao = new MessageDao();
 new MessageController(app, messageDao);
+
+const tuitDao = new TuitDao();
+new TuitController(app, tuitDao, bookmarkDao, likesDao, userDao);
+
 
 new UserController(app, userDao, followDao, tuitDao, bookmarkDao, likesDao);
 

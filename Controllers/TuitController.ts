@@ -3,14 +3,24 @@ import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 import ITuitController from "../interfaces/ITuitController";
 import ITuitDao from "../interfaces/ITuitDao";
+import IUserDao from "../interfaces/IUserDao";
+import BookmarkDao from "../mongoose/BookmarkDao";
+import LikeDao from "../mongoose/LikeDao";
 
 export default class TuitController implements ITuitController {
 
     private app: Express;
     private tuitDao: ITuitDao;
-    constructor(app: Express, tuitDao: ITuitDao) {
+    private userDao: IUserDao;
+    private bookmarkDao: BookmarkDao;
+    private likeDao: LikeDao;
+    constructor(app: Express, tuitDao: ITuitDao, bookmarksDao: BookmarkDao, likeDao: LikeDao, userDao: IUserDao) {
         this.app = app;
         this.tuitDao = tuitDao;
+        this.userDao = userDao;
+        this.tuitDao = tuitDao;
+        this.bookmarkDao = bookmarksDao;
+        this.likeDao = likeDao;
         this.app.get('/api/tuits', this.findAllTuits);
         this.app.get('/api/tuits/:tuitid', this.findTuitById);
         this.app.get('/api/users/:uid/tuits', this.findTuitsByUser);
@@ -29,12 +39,62 @@ export default class TuitController implements ITuitController {
         res.json(tuit);
     }
     updateTuit = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
+
         const tuit = await this.tuitDao.updateTuit(req.params.tuitid, req.body);
         res.json(tuit);
     }
     deleteTuit = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
-        const tuit = await this.tuitDao.deleteTuit(req.params.tuitid);
-        res.json(tuit);
+
+
+        const userDeletingId = "63858a59bffdb02c1ec4cfca"; //req.session['profile']._id
+        const userDeletingObj = await this.userDao.findUserById(userDeletingId);
+        const tuitToBeDeleted = await this.tuitDao.findTuitById(req.params.tuitid);
+        const tuitPostedBy = tuitToBeDeleted?.postedBy?._id;
+
+        if (userDeletingObj && tuitPostedBy) {
+            if (userDeletingObj.admin || userDeletingId === tuitPostedBy) {
+
+
+                //Remove all the Bookmark entries
+                const bookmarks = await this.bookmarkDao.findAllTuitsBookmarkedByUser(tuitPostedBy);
+
+
+
+                for (let i = 0; i < bookmarks.length; i++) {
+                    await this.bookmarkDao.userUnbookmarksTuit(bookmarks[i].bookmarkedTuit._id, bookmarks[i].bookmarkedBy._id);
+                }
+
+
+
+                //Get All the tuits
+                const tuits = await this.tuitDao.findTuitsByUser(tuitPostedBy);
+
+
+                //Remove Likes
+                for (let i = 0; i < tuits.length; i++) {
+                    await this.likeDao.userUnlikesTuitByTuit(tuits[i]._id);
+                }
+
+                await this.likeDao.userUnlikesTuitByUser(tuitPostedBy);
+
+
+                //Remove all the tuits by user
+                const tuit = await this.tuitDao.deleteTuitByUserId(tuitPostedBy);
+
+
+
+                res.json(tuit);
+
+
+            }
+            else {
+                res.sendStatus(403);
+            }
+
+        }
+        else {
+            res.sendStatus(404);
+        }
     }
     /**
      * @param {Request} req Represents request from client, including path
