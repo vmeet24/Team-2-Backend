@@ -19,7 +19,7 @@ import IUserDao from "../interfaces/IUserDao";
  * @param {ITuitDao} tuitDao The DAO instance used to interact with the tuits collection
  * @param {IUserDao} userDao The DAO instance used to interact with the users collection
  * @param {IBookmarkDao} bookmarksDao The DAO instance used to interact with the bookmarks collection
- * @param {ILikeDao} likeDaoThe DAO instance used to interact with the likes collection
+ * @param {ILikeDao} likeDao The DAO instance used to interact with the likes collection
  * @class TuitController
  * @implements ITuitController
  */
