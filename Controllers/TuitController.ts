@@ -13,8 +13,8 @@ import ITuitDao from "../interfaces/ITuitDao";
 import IUserDao from "../interfaces/IUserDao";
 
 /**
- * The implementation of our controller which maps URIs to the appropriate DAO calls to access data
- * in our remote database.
+ * The implementation of our Tuits controller interface which maps URIs to the appropriate DAO calls 
+ * to access data in our remote database.
  * @param {Express} app The Express application our backend uses to send/receive HTTP requests
  * @param {ITuitDao} tuitDao The DAO instance used to interact with the tuits collection
  * @param {IUserDao} userDao The DAO instance used to interact with the users collection
