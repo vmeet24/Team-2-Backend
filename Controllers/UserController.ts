@@ -1,3 +1,8 @@
+/**
+ * @file The User controller handles mapping our RESTful API to our DAO layer for remote database
+ * access of the Users collection.
+ */
+
 import { Request, Response, Express } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
@@ -9,6 +14,18 @@ import FollowDao from "../mongoose/FollowDao";
 import LikeDao from "../mongoose/LikeDao";
 import TuitDao from "../mongoose/TuitDao";
 
+/**
+ * The implementation of our Users controller interface which maps URIs to the appropriate DAO calls 
+ * to access data in our remote database.
+ * @param {Express} app The Express application our backend uses to send/receive HTTP requests
+ * @param {TuitDao} tuitDao The DAO instance used to interact with the tuits collection
+ * @param {IUserDao} userDao The DAO instance used to interact with the users collection
+ * @param {BookmarkDao} bookmarksDao The DAO instance used to interact with the bookmarks collection
+ * @param {LikeDao} likeDao The DAO instance used to interact with the likes collection
+ * @param {FollowDao} followsDao The DAO instance used to interact with the follows collection
+ * @class UserController
+ * @implements IUserController
+ */
 export default class UserController implements IUserController {
     private app: Express;
     private userDao: IUserDao;
@@ -16,6 +33,17 @@ export default class UserController implements IUserController {
     private tuitDao: TuitDao;
     private bookmarkDao: BookmarkDao;
     private likeDao: LikeDao;
+
+    /**
+     * The constructor for the UserController which sets up the supported URIs with the Express app
+     * and returns a new UserController object.
+     * @param {Express} app The Express application our backend uses to send/receive HTTP requests
+     * @param {IUserDao} userDao The DAO instance used to interact with the users collection
+     * @param {FollowDao} followsDao The DAO instance used to interact with the follows collection
+     * @param {TuitDao} tuitDao The DAO instance used to interact with the tuits collection
+     * @param {BookmarkDao} bookmarksDao The DAO instance used to interact with the bookmarks collection
+     * @param {LikeDao} likeDao The DAO instance used to interact with the likes collection
+     */
     constructor(app: Express, userDao: IUserDao, followsDao: FollowDao, tuitDao: TuitDao, bookmarksDao: BookmarkDao, likeDao: LikeDao) {
         this.app = app;
         this.userDao = userDao;
@@ -23,6 +51,7 @@ export default class UserController implements IUserController {
         this.tuitDao = tuitDao;
         this.bookmarkDao = bookmarksDao;
         this.likeDao = likeDao;
+        
         this.app.get('/api/users', this.findAllUsers);
         this.app.get('/api/users/search', this.searchUserByUsernameOrEmail);
         this.app.get('/api/users/:userid', this.findUserById);
@@ -91,29 +120,44 @@ export default class UserController implements IUserController {
             res.status(400).send("Sorry, session failed, try to login again!");
         }
     }
+
+    /**
+     * Finds a user by its unique ID and adds a JSON-formatted copy of the user object to the returned
+     * HTTP response object.
+     * @param req The HTTP request object received by the controller
+     * @param res The HTTP response object that will be sent back
+     */
     findUserById = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
         const user = await this.userDao.findUserById(req.params.userid);
         res.json(user);
     }
+    
+    /**
+     * Creates a new user in the users collection and adds a JSON-formatted version of the user to
+     * the returned HTTP response.
+     * @param req The HTTP request object received by the controller
+     * @param res The HTTP response object that will be sent back
+     */
     createUser = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
         const user = await this.userDao.createUser(req.body);
         res.json(user);
     }
+
+    /**
+     * Deletes a user and all of its dependencies (follows, bookmarks, etc.) and adds the results
+     * of the delete request to the return HTTP response.
+     * @param req The HTTP request object received by the controller
+     * @param res The HTTP response object that will be sent back
+     */
     deleteUser = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
-        const userDeletingId = "63858a59bffdb02c1ec4cfca"; //req.session['profile']._id
+        const userDeletingId = req.session['profile']._id
         const userDeletingObj = await this.userDao.findUserById(userDeletingId);
         const userToBeDeleted = req.params.userid;
 
-
         if (userDeletingObj) {
             if (userDeletingObj.admin || userDeletingId === userToBeDeleted) {
-
-
-
-
                 //Remove all the follow entries where user is being followed by other users
                 const followedBy = await this.followsDao.findAllUsersThatUserIsFollowedBy(userToBeDeleted);
-
 
                 for (let i = 0; i < followedBy.length; i++) {
                     await this.followsDao.userUnFollowsAnotherUser(followedBy[i].userFollowing._id, followedBy[i].userFollowed._id);
@@ -126,16 +170,12 @@ export default class UserController implements IUserController {
                     await this.followsDao.userUnFollowsAnotherUser(following[i].userFollowing._id, following[i].userFollowed._id);
                 }
 
-
                 //Remove all the Bookmark entries
                 const bookmarks = await this.bookmarkDao.findAllTuitsBookmarkedByUser(userToBeDeleted);
-
 
                 for (let i = 0; i < bookmarks.length; i++) {
                     await this.bookmarkDao.userUnbookmarksTuit(bookmarks[i].bookmarkedTuit._id, bookmarks[i].bookmarkedBy._id);
                 }
-
-                
 
                 //Get All the tuits
                 const tuits = await this.tuitDao.findTuitsByUser(userToBeDeleted);
@@ -147,16 +187,11 @@ export default class UserController implements IUserController {
 
                 await this.likeDao.userUnlikesTuitByUser(userToBeDeleted);
 
-
                 //Remove all the tuits by user
                 await this.tuitDao.deleteTuitByUserId(userToBeDeleted);
 
                 const user = await this.userDao.deleteUser(userToBeDeleted);
-
                 res.json(user);
-
-
-
             }
             else {
                 res.sendStatus(404);
@@ -167,10 +202,17 @@ export default class UserController implements IUserController {
         }
     }
 
+    /**
+     * Parses the HTTP request body fields, updates the matching user object with the given field
+     * values, and adds a JSON-formatted result of the update operation to the returned HTTP response. 
+     * @param req The HTTP request object received by the controller
+     * @param res The HTTP response object that will be sent back
+     */
     updateUser = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
         const users = await this.userDao.updateUser(req.params.userid, req.body);
         res.json(users);
     }
+    
     /**
     * Removes user instance with the given username from the database.
     * @param {Request} req Represents request from client
