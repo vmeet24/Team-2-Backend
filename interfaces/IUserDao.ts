@@ -12,4 +12,6 @@ export default interface IUserDao {
     deleteUser(uid: string): Promise<any>;
     deleteUsersByUsername(username: string): Promise<any>;
     findUserByUsername(username: string): Promise<any>;
+    findUsersByEmail(email: string): Promise<User[]>
+    findUsersByUsername(username: string): Promise<User[]>
 }

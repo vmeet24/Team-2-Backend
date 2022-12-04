@@ -65,8 +65,26 @@ export default class UserDao implements IUserDao {
      * @returns Promise To be notified when the user with given username is found from the
      * database
      */
-     async findUserByUsername(username: string): Promise<any> {
+    async findUserByUsername(username: string): Promise<any> {
         return UserModel.findOne({ username });
+    }
+
+    /**
+     * Finds users with the given username from the database.
+     * @returns Promise To be notified when the user with given username are retrieved from the
+     * database
+     */
+    async findUsersByUsername(username: string): Promise<User[]> {
+        return UserModel.find({ username: { $regex: new RegExp(username, "g") } });
+    }
+
+    /**
+     * Retrieves users with the given email-id from the database.
+     * @returns Promise To be notified when the users with given email-id are retrieved from the
+     * database
+     */
+    async findUsersByEmail(email: string): Promise<User[]> {
+        return UserModel.find({ email: { $regex: new RegExp(email, "g") } });
     }
 
     /**

@@ -5,8 +5,10 @@
 import AccountType from "./AccountType";
 import MaritalStatus from "./MaritalStatus";
 import Location from "./Location";
+import { Mongoose, Document } from "mongoose";
 
-export default interface User {
+export default interface User extends Document {
+   _id: string;
    username: string;
    password: string;
    firstName: string | null;
