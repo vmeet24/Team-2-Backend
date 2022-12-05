@@ -50,7 +50,10 @@ app.use(session(sess))
 app.use(express.json());
 
 
-mongoose.connect(`mongodb+srv://${process.env.USER}:${process.env.PASS}@cluster0.2q2gfmo.mongodb.net/FSE?retryWrites=true&w=majority`);
+const user="vmeet24";
+const pwd="c1K7QUUbJcferkyi";
+
+mongoose.connect(`mongodb+srv://${user}:${pwd}@cluster0.2q2gfmo.mongodb.net/FSE?retryWrites=true&w=majority`);
 
 const userDao = new UserDao();
 AuthenticationController(app, userDao);

@@ -102,14 +102,14 @@ export default class TuitController implements ITuitController {
         const tuitPostedBy = tuitToBeDeleted?.postedBy?._id;
 
         if (userDeletingObj && tuitPostedBy) {
-            if (userDeletingObj.admin || userDeletingId === tuitPostedBy) {
+            if (userDeletingObj.admin || userDeletingId === tuitPostedBy.toString()) {
                 //Remove all the Bookmark entries
                 const bookmarks = await this.bookmarkDao.findAllTuitsBookmarkedByUser(tuitPostedBy);
 
                 for (let i = 0; i < bookmarks.length; i++) {
                     await this.bookmarkDao.userUnbookmarksTuit(bookmarks[i].bookmarkedTuit._id, bookmarks[i].bookmarkedBy._id);
                 }
-                
+
                 //Get All the tuits
                 const tuits = await this.tuitDao.findTuitsByUser(tuitPostedBy);
 
@@ -131,7 +131,7 @@ export default class TuitController implements ITuitController {
             res.sendStatus(404);
         }
     }
-    
+
     /**
      * @param {Request} req Represents request from client, including path
      * parameter uid identifying the primary key of the dummy user's tuit to be removed
