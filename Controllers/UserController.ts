@@ -51,7 +51,7 @@ export default class UserController implements IUserController {
         this.tuitDao = tuitDao;
         this.bookmarkDao = bookmarksDao;
         this.likeDao = likeDao;
-        
+
         this.app.get('/api/users', this.findAllUsers);
         this.app.get('/api/users/search', this.searchUserByUsernameOrEmail);
         this.app.get('/api/users/:userid', this.findUserById);
@@ -131,7 +131,7 @@ export default class UserController implements IUserController {
         const user = await this.userDao.findUserById(req.params.userid);
         res.json(user);
     }
-    
+
     /**
      * Creates a new user in the users collection and adds a JSON-formatted version of the user to
      * the returned HTTP response.
@@ -212,7 +212,7 @@ export default class UserController implements IUserController {
         const users = await this.userDao.updateUser(req.params.userid, req.body);
         res.json(users);
     }
-    
+
     /**
     * Removes user instance with the given username from the database.
     * @param {Request} req Represents request from client
