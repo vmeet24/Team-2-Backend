@@ -261,13 +261,49 @@ export default class UserController implements IUserController {
      * on whether deleting a user was successful or not
      */
     adminDeleteUser = async (req: Request, res: Response) => {
-        // const uid = req.params.uid
+        const userToBeDeleted = req.params.uid
 
         // // delete all info this user has created
         // await this.tuitDao.deleteAllTuitsByUser(uid)
         // await UserController.bookmarkDao.deleteAllBookmarksByUser(uid)
         // await UserController.dislikeDao.deleteAllDislikesByUser(uid)
         // await UserController.likeDao.deleteAllLikesByUser(uid)
+            //Remove all the follow entries where user is being followed by other users
+            const followedBy = await this.followsDao.findAllUsersThatUserIsFollowedBy(userToBeDeleted);
+
+            for (let i = 0; i < followedBy.length; i++) {
+                await this.followsDao.userUnFollowsAnotherUser(followedBy[i].userFollowing._id, followedBy[i].userFollowed._id);
+            }
+
+            //Remove all the follow entries where user is following other users
+            const following = await this.followsDao.findAllUsersThatUserIsFollowing(userToBeDeleted);
+
+            for (let i = 0; i < following.length; i++) {
+                await this.followsDao.userUnFollowsAnotherUser(following[i].userFollowing._id, following[i].userFollowed._id);
+            }
+
+            //Remove all the Bookmark entries
+            const bookmarks = await this.bookmarkDao.findAllTuitsBookmarkedByUser(userToBeDeleted);
+
+            for (let i = 0; i < bookmarks.length; i++) {
+                await this.bookmarkDao.userUnbookmarksTuit(bookmarks[i].bookmarkedTuit._id, bookmarks[i].bookmarkedBy._id);
+            }
+
+            //Get All the tuits
+            const tuits = await this.tuitDao.findTuitsByUser(userToBeDeleted);
+
+            //Remove Likes
+            for (let i = 0; i < tuits.length; i++) {
+                await this.likeDao.userUnlikesTuitByTuit(tuits[i]._id);
+            }
+
+            await this.likeDao.userUnlikesTuitByUser(userToBeDeleted);
+
+            //Remove all the tuits by user
+            await this.tuitDao.deleteTuitByUserId(userToBeDeleted);
+
+            const user = await this.userDao.deleteUser(userToBeDeleted);
+            res.json(user);
 
         this.deleteUser(req,res)
             .then(status => res.json(status))
@@ -281,8 +317,9 @@ export default class UserController implements IUserController {
      * body formatted as JSON containing the user(s) that match the username
      */
      searchByUsername = (req: Request, res: Response) =>
-     this.userDao.findUserByUsername(req.params.username)
-         .then(users => {
+     this.userDao.findUsersByUsername(req.params.username)
+         .then(users => {            
+            console.log("got to search by");
              const sortedUsers = users.sort((a: User, b: User) => a.username > b.username ? 1 : -1)
              res.json(sortedUsers)
          })
