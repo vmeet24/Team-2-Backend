@@ -153,7 +153,6 @@ export default class UserController implements IUserController {
         const userDeletingId = req.session['profile']._id
         const userDeletingObj = await this.userDao.findUserById(userDeletingId);
         const userToBeDeleted = req.params.userid;
-        console.log(req.session['profile']);
 
         if (userDeletingObj) {
             if (userDeletingObj.admin || userDeletingId === userToBeDeleted) {
