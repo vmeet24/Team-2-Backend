@@ -13,6 +13,7 @@ import BookmarkDao from "../mongoose/BookmarkDao";
 import FollowDao from "../mongoose/FollowDao";
 import LikeDao from "../mongoose/LikeDao";
 import TuitDao from "../mongoose/TuitDao";
+import User from "../models/User";
 
 /**
  * The implementation of our Users controller interface which maps URIs to the appropriate DAO calls 
@@ -59,6 +60,9 @@ export default class UserController implements IUserController {
         this.app.delete('/api/users/:userid', this.deleteUser);
         this.app.put('/api/users/:userid', this.updateUser);
         this.app.delete("/api/users/username/:username/delete", this.deleteUsersByUsername);
+        this.app.get('/api/admin/:username', this.searchByUsername);
+        this.app.post('/api/admin', this.adminCreateUser);
+        this.app.delete('/api/admin/:uid', this.adminDeleteUser);
     }
 
     /**
@@ -223,4 +227,63 @@ export default class UserController implements IUserController {
         const result = await this.userDao.deleteUsersByUsername(req.params.username);
         res.json(result);
     }
+
+
+    /**
+     * Creates a new user instance
+     * @param {Request} req Represents request from client, including body
+     * containing the JSON object for the new user to be inserted in the
+     * database
+     * @param {Response} res Represents response to client, including the
+     * body formatted as JSON containing the new user that was inserted in the
+     * database
+     */
+     adminCreateUser = async (req: Request, res: Response) => {
+        const newUser = req.body;
+        const password = newUser.password;
+        const existingUser = await this.userDao
+        .findUserByUsername(newUser.username);
+
+        if (existingUser) {
+            res.sendStatus(403);
+            return
+        } else {
+            this.userDao.createUser(newUser)
+                .then((user: User) => res.json(user));
+        }
+    }
+
+    /**
+     * Removes a user instance from the database
+     * @param {Request} req Represents request from client, including path
+     * parameter uid identifying the primary key of the user to be removed
+     * @param {Response} res Represents response to client, including status
+     * on whether deleting a user was successful or not
+     */
+    adminDeleteUser = async (req: Request, res: Response) => {
+        // const uid = req.params.uid
+
+        // // delete all info this user has created
+        // await this.tuitDao.deleteAllTuitsByUser(uid)
+        // await UserController.bookmarkDao.deleteAllBookmarksByUser(uid)
+        // await UserController.dislikeDao.deleteAllDislikesByUser(uid)
+        // await UserController.likeDao.deleteAllLikesByUser(uid)
+
+        this.deleteUser(req,res)
+            .then(status => res.json(status))
+    }
+
+    /**
+     * Retrieves user(s) by their username
+     * @param {Request} req Represents request from client, including path
+     * parameter username identifying the username of the user(s) to be retrieved
+     * @param {Response} res Represents response to client, including the
+     * body formatted as JSON containing the user(s) that match the username
+     */
+     searchByUsername = (req: Request, res: Response) =>
+     this.userDao.findUserByUsername(req.params.username)
+         .then(users => {
+             const sortedUsers = users.sort((a: User, b: User) => a.username > b.username ? 1 : -1)
+             res.json(sortedUsers)
+         })
 }
