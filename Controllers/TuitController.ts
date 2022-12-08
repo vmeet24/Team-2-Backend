@@ -104,7 +104,7 @@ export default class TuitController implements ITuitController {
         const tuitPostedBy = tuitToBeDeleted?.postedBy?._id.toString();
 
         if (userDeletingObj && tuitPostedBy) {
-            if (userDeletingObj.admin || userDeletingId === tuitPostedBy) {
+            if (userDeletingObj.admin || userDeletingId === tuitPostedBy.toString()) {
                 //Remove all the Bookmark entries
                 const bookmarks = await this.bookmarkDao.findAllTuitsBookmarkedByUser(tuitPostedBy);
 
