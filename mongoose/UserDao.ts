@@ -75,7 +75,7 @@ export default class UserDao implements IUserDao {
      * database
      */
     async findUsersByUsername(username: string): Promise<User[]> {
-        return UserModel.find({ username: { $regex: new RegExp(username, "g") } });
+        return UserModel.find({ username: { $regex: username } });
     }
 
     /**
