@@ -33,6 +33,7 @@ export default class BookmarkController implements IBookmarkController {
         this.bookmarkDao = bookmarkDao;
         this.app.get("/api/users/:uid/bookmarks", this.findAllTuitsBookmarkedByUser);
         this.app.post("/api/users/:uid/bookmarks/:tid", this.userBookmarksTuit);
+        this.app.put("/api/users/:uid/bookmarks/:tid", this.userTogglesTuit);
         this.app.delete("/api/users/:uid/bookmarks/:tid", this.userUnbookmarksTuit);
     }
 
@@ -85,5 +86,19 @@ export default class BookmarkController implements IBookmarkController {
         const uid = this.parseUserId(req);
         const result = await this.bookmarkDao.userUnbookmarksTuit(req.params.tid, uid);
         res.json(result);
+    }
+
+    userTogglesTuit = async (req: Request, res: Response) => {
+        const uid = this.parseUserId(req);
+        const bookmarkCheck = await this.bookmarkDao.findTuitBookmarkedByUser(req.params.uid, req.params.tid);
+
+        if (bookmarkCheck) {
+            const result = await this.bookmarkDao.userUnbookmarksTuit(req.params.tid, uid);
+            res.json(result);
+        }
+        else {
+            const tuit = await this.bookmarkDao.userBookmarksTuit(req.params.tid, uid);
+            res.json(tuit);
+        }
     }
 }
