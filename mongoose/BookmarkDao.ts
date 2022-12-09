@@ -15,7 +15,7 @@ export default class BookmarkDao implements IBookmarkDao {
      * @returns Promise To be notified when the bookmarks are retrieved from database
      */
     async findTuitBookmarkedByUser(uid: string, tid: string): Promise<Bookmark | null> {
-        return BookmarkModel.findOne({ bookmarkedBy: uid, bookmarkedTuit: tid });
+        return BookmarkModel.findOne({ bookmarkedBy: uid, bookmarkedTuit: tid }).populate("bookmarkedTuit").exec();
     }
 
 
