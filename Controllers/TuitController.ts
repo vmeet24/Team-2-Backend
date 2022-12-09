@@ -103,6 +103,14 @@ export default class TuitController implements ITuitController {
 
         if (userDeletingObj && tuitPostedBy) {
             if (userDeletingObj.admin || userDeletingId === tuitPostedBy) {
+                //Remove just one tuit if ID is specified
+                if (tuitToBeDeleted) {
+                    const response = await this.tuitDao.deleteTuit(req.params.tuitid);
+                    res.json(response);
+                    return;
+                }
+                
+                //Otherwise remove all tuits & dependencies
                 //Remove all the Bookmark entries
                 const bookmarks = await this.bookmarkDao.findAllTuitsBookmarkedByUser(tuitPostedBy);
 
@@ -118,15 +126,10 @@ export default class TuitController implements ITuitController {
                     await this.likeDao.userUnlikesTuitByTuit(tuits[i]._id);
                 }
                 await this.likeDao.userUnlikesTuitByUser(tuitPostedBy);
-
                 
-                let response = null;
-                if (tuitToBeDeleted) { // remove just one tuit
-                    response = await this.tuitDao.deleteTuit(req.params.tuitid);
-                } else { // Remove all the tuits by user if no tuit specified
-                    response = await this.tuitDao.deleteTuitByUserId(tuitPostedBy);
-                }
-                res.json(response);
+                // Remove all the tuits by user if no tuit specified
+                const tuit = await this.tuitDao.deleteTuitByUserId(tuitPostedBy);
+                res.json(tuit);
             }
             else {
                 res.sendStatus(403);
