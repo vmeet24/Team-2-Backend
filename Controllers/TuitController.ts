@@ -119,9 +119,14 @@ export default class TuitController implements ITuitController {
                 }
                 await this.likeDao.userUnlikesTuitByUser(tuitPostedBy);
 
-                //Remove all the tuits by user
-                const tuit = await this.tuitDao.deleteTuitByUserId(tuitPostedBy);
-                res.json(tuit);
+                
+                let response = null;
+                if (tuitToBeDeleted) { // remove just one tuit
+                    response = await this.tuitDao.deleteTuit(req.params.tuitid);
+                } else { // Remove all the tuits by user if no tuit specified
+                    response = await this.tuitDao.deleteTuitByUserId(tuitPostedBy);
+                }
+                res.json(response);
             }
             else {
                 res.sendStatus(403);
