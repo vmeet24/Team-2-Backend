@@ -11,6 +11,7 @@ import ILikeDao from "../interfaces/ILikeDao";
 import ITuitController from "../interfaces/ITuitController";
 import ITuitDao from "../interfaces/ITuitDao";
 import IUserDao from "../interfaces/IUserDao";
+import Tuit from "../models/Tuit";
 
 /**
  * The implementation of our Tuits controller interface which maps URIs to the appropriate DAO calls 
@@ -54,6 +55,7 @@ export default class TuitController implements ITuitController {
         this.app.put('/api/tuits/:tuitid', this.updateTuit);
         this.app.delete('/api/tuits/:tuitid', this.deleteTuit);
         this.app.delete("/api/tuits/:uid/delete", this.deleteTuitByUserId);
+        this.app.get('/api/admin/tuits/:tuit', this.searchByTuit);
     }
 
     /**
@@ -170,4 +172,18 @@ export default class TuitController implements ITuitController {
         const tuit = await this.tuitDao.findTuitsByUser(userId);
         res.json(tuit);
     }
+
+    /**
+     * Retrieves tuit(s) by their tuit
+     * @param {Request} req Represents request from client, including path
+     * parameter tuit identifying the tuit of the tuit(s) to be retrieved
+     * @param {Response} res Represents response to client, including the
+     * body formatted as JSON containing the tuit(s) that match the tuit
+     */
+     searchByTuit = (req: Request, res: Response) =>
+     this.tuitDao.searchByTuit(req.params.tuit)
+         .then(tuits => {
+             const sortedTuits = tuits.sort((a: Tuit, b: Tuit) => a.tuit > b.tuit ? 1 : -1)
+             res.json(sortedTuits)
+         })
 }

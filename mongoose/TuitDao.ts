@@ -78,4 +78,14 @@ export default class TuitDao implements ITuitDao {
         return await TuitModel.deleteMany({ postedBy: uid });
     }
 
+
+    /**
+     * Uses TuitModel to retrieve tuit document(s) from tuits collection
+     * using the given tuit
+     * @param {string} tuit Tuit's tuit
+     * Promise to be notified when tuit(s) are retrieved from the database
+     */
+     searchByTuit = async (tuit: string): Promise<any> =>
+     TuitModel.find({tuit: {$regex: tuit}}).populate('postedBy').exec();
+
 }

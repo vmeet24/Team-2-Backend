@@ -11,4 +11,7 @@ export default interface IUserController {
     deleteUser(req: Request, res: Response): void;
     updateUser(req: Request, res: Response): void;
     deleteUsersByUsername(req: Request, res: Response): void;
+    searchByUsername(req: Request, res: Response): void;
+    adminCreateUser(req: Request, res: Response): void;
+    adminDeleteUser(req: Request, res: Response): void;
 }
