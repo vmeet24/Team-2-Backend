@@ -15,6 +15,9 @@ import LikeDao from "../mongoose/LikeDao";
 import TuitDao from "../mongoose/TuitDao";
 import User from "../models/User";
 
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 /**
  * The implementation of our Users controller interface which maps URIs to the appropriate DAO calls 
  * to access data in our remote database.
@@ -240,15 +243,18 @@ export default class UserController implements IUserController {
      */
      adminCreateUser = async (req: Request, res: Response) => {
         const newUser = req.body;
-        const password = newUser.password;
-        const existingUser = await this.userDao
-        .findUserByUsername(newUser.username);
+        const existingUser = await this.userDao.findUserByUsername(newUser.username);
 
         if (existingUser) {
             res.sendStatus(403);
             return
         } else {
-            this.userDao.createUser(newUser)
+            const password = await bcrypt.hash(req.body?.password, saltRounds);
+            const userData = {
+                ...req.body,
+                password
+            }
+            this.userDao.createUser(userData)
                 .then((user: User) => res.json(user));
         }
     }
