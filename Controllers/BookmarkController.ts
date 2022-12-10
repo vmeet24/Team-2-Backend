@@ -98,15 +98,12 @@ export default class BookmarkController implements IBookmarkController {
     userTogglesTuit = async (req: Request, res: Response) => {
         const uid = this.parseUserId(req);
         const bookmarkCheck = await this.bookmarkDao.findTuitBookmarkedByUser(req.params.uid, req.params.tid);
-        console.log(bookmarkCheck);
         let result;
         if (bookmarkCheck) {
             result = await this.bookmarkDao.userUnbookmarksTuit(req.params.tid, uid);
-            console.log(result);
         }
         else {
             const result = await this.bookmarkDao.userBookmarksTuit(req.params.tid, uid);
-            console.log(result);
         }
         res.json(result);
     }

@@ -6,6 +6,7 @@
 import IBookmarkDao from "../interfaces/IBookmarkDao";
 import Bookmark from "../models/Bookmark";
 import BookmarkModel from "./BookmarkModel";
+import UserModel from "./UserModel";
 
 export default class BookmarkDao implements IBookmarkDao {
      /**
@@ -15,7 +16,13 @@ export default class BookmarkDao implements IBookmarkDao {
      * @returns Promise To be notified when the bookmarks are retrieved from database
      */
     async findTuitBookmarkedByUser(uid: string, tid: string): Promise<Bookmark | null> {
-        return BookmarkModel.findOne({ bookmarkedBy: uid, bookmarkedTuit: tid }).populate("bookmarkedTuit").exec();
+        return BookmarkModel.findOne({ bookmarkedBy: uid, bookmarkedTuit: tid }).populate({
+            path: "bookmarkedTuit",
+            populate: {
+            path: "postedBy",
+            model: UserModel
+            }
+            }).exec();
     }
 
 
