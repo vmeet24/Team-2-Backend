@@ -6,9 +6,26 @@
 import IBookmarkDao from "../interfaces/IBookmarkDao";
 import Bookmark from "../models/Bookmark";
 import BookmarkModel from "./BookmarkModel";
+import UserModel from "./UserModel";
 
 export default class BookmarkDao implements IBookmarkDao {
-    
+     /**
+     * Retrieve bookmark record of a specific user for a specific tuit.
+     * @param {string} uid User's primary key
+     * @param {string} tid Tuit's primary key
+     * @returns Promise To be notified when the bookmarks are retrieved from database
+     */
+    async findTuitBookmarkedByUser(uid: string, tid: string): Promise<Bookmark | null> {
+        return BookmarkModel.findOne({ bookmarkedBy: uid, bookmarkedTuit: tid }).populate({
+            path: "bookmarkedTuit",
+            populate: {
+            path: "postedBy",
+            model: UserModel
+            }
+            }).exec();
+    }
+
+
 
     /**
      * Retrieve all tuits from bookmarks collection bookmarked by a user

@@ -2,6 +2,10 @@
  * @file Implements an Express Node HTTP server.
  */
 
+
+//Added to delete default USER env variable for mac users.
+delete process.env.USER;
+
 require('dotenv').config({
     path: "./.env"
 });
@@ -49,6 +53,7 @@ app.use(cors({
 app.use(session(sess))
 app.use(express.json());
 
+//Added delete
 
 mongoose.connect(`mongodb+srv://${process.env.USER}:${process.env.PASS}@cluster0.2q2gfmo.mongodb.net/FSE?retryWrites=true&w=majority`);
 

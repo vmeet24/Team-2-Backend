@@ -7,4 +7,5 @@ export default interface IBookmarkDao {
     findAllTuitsBookmarkedByUser(uid: string): Promise<Bookmark[]>;
     userBookmarksTuit(tid: string, uid: string): Promise<Bookmark>;
     userUnbookmarksTuit(tid: string, uid: string): Promise<any>;
+    findTuitBookmarkedByUser(uid:string,tid:string): Promise<Bookmark | null>;
 };

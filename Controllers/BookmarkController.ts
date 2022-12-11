@@ -33,6 +33,7 @@ export default class BookmarkController implements IBookmarkController {
         this.bookmarkDao = bookmarkDao;
         this.app.get("/api/users/:uid/bookmarks", this.findAllTuitsBookmarkedByUser);
         this.app.post("/api/users/:uid/bookmarks/:tid", this.userBookmarksTuit);
+        this.app.put("/api/users/:uid/bookmarks/:tid", this.userTogglesTuit);
         this.app.delete("/api/users/:uid/bookmarks/:tid", this.userUnbookmarksTuit);
     }
 
@@ -84,6 +85,26 @@ export default class BookmarkController implements IBookmarkController {
     userUnbookmarksTuit = async (req: Request, res: Response) => {
         const uid = this.parseUserId(req);
         const result = await this.bookmarkDao.userUnbookmarksTuit(req.params.tid, uid);
+        res.json(result);
+    }
+
+    /**
+     * @param {Request} req Represents request from client, including the
+     * path parameters uid and tid representing the user that is unbookmarking
+     * the tuit will be bookmarked if it isn't and will be unbookmarked if it already is
+     * @param {Response} res Represents response to client, including status
+     * on whether deleting/creating the bookmark was successful or not
+     */
+    userTogglesTuit = async (req: Request, res: Response) => {
+        const uid = this.parseUserId(req);
+        const bookmarkCheck = await this.bookmarkDao.findTuitBookmarkedByUser(req.params.uid, req.params.tid);
+        let result;
+        if (bookmarkCheck) {
+            result = await this.bookmarkDao.userUnbookmarksTuit(req.params.tid, uid);
+        }
+        else {
+            const result = await this.bookmarkDao.userBookmarksTuit(req.params.tid, uid);
+        }
         res.json(result);
     }
 }
