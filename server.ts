@@ -55,7 +55,7 @@ app.use(express.json());
 
 //Added delete
 
-mongoose.connect(`mongodb+srv://${process.env.USER}:${process.env.PASS}@cluster0.2q2gfmo.mongodb.net/FSE?retryWrites=true&w=majority`);
+mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.2q2gfmo.mongodb.net/FSE?retryWrites=true&w=majority`);
 
 const userDao = new UserDao();
 AuthenticationController(app, userDao);
