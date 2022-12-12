@@ -65,7 +65,7 @@ export default class UserController implements IUserController {
         this.app.delete("/api/users/username/:username/delete", this.deleteUsersByUsername);
         this.app.get('/api/admin/:username', this.searchByUsername);
         this.app.post('/api/admin', this.adminCreateUser);
-        this.app.delete('/api/admin/:uid', this.adminDeleteUser);
+        this.app.delete('/api/admin/:userid', this.adminDeleteUser);
     }
 
     /**
@@ -99,7 +99,7 @@ export default class UserController implements IUserController {
 
     /**
      * Checks a given request for the keyword "me" and returns the id of the currently signed
-     * in user. Otherwise returns the uid from the request iself.
+     * in user. Otherwise returns the uid from the request itself.
      * @param {Request} req The given HTTP request object one of our endpoints receives
      * @returns {string} The ID of the user making the request
      */
@@ -157,7 +157,7 @@ export default class UserController implements IUserController {
      * @param res The HTTP response object that will be sent back
      */
     deleteUser = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
-        const userDeletingId = req.session['profile']._id
+        const userDeletingId = this.parseUserId(req);
         const userDeletingObj = await this.userDao.findUserById(userDeletingId);
         const userToBeDeleted = req.params.userid;
 
@@ -216,7 +216,11 @@ export default class UserController implements IUserController {
      * @param res The HTTP response object that will be sent back
      */
     updateUser = async (req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>): Promise<void> => {
-        const users = await this.userDao.updateUser(req.params.userid, req.body);
+        const body = req.body;
+        if (body.password) {
+            body.password = await bcrypt.hash(req.body.password, saltRounds);
+        }
+        const users = await this.userDao.updateUser(req.params.userid, body);
         res.json(users);
     }
 
@@ -267,50 +271,6 @@ export default class UserController implements IUserController {
      * on whether deleting a user was successful or not
      */
     adminDeleteUser = async (req: Request, res: Response) => {
-        const userToBeDeleted = req.params.uid
-
-        // // delete all info this user has created
-        // await this.tuitDao.deleteAllTuitsByUser(uid)
-        // await UserController.bookmarkDao.deleteAllBookmarksByUser(uid)
-        // await UserController.dislikeDao.deleteAllDislikesByUser(uid)
-        // await UserController.likeDao.deleteAllLikesByUser(uid)
-            //Remove all the follow entries where user is being followed by other users
-            const followedBy = await this.followsDao.findAllUsersThatUserIsFollowedBy(userToBeDeleted);
-
-            for (let i = 0; i < followedBy.length; i++) {
-                await this.followsDao.userUnFollowsAnotherUser(followedBy[i].userFollowing._id, followedBy[i].userFollowed._id);
-            }
-
-            //Remove all the follow entries where user is following other users
-            const following = await this.followsDao.findAllUsersThatUserIsFollowing(userToBeDeleted);
-
-            for (let i = 0; i < following.length; i++) {
-                await this.followsDao.userUnFollowsAnotherUser(following[i].userFollowing._id, following[i].userFollowed._id);
-            }
-
-            //Remove all the Bookmark entries
-            const bookmarks = await this.bookmarkDao.findAllTuitsBookmarkedByUser(userToBeDeleted);
-
-            for (let i = 0; i < bookmarks.length; i++) {
-                await this.bookmarkDao.userUnbookmarksTuit(bookmarks[i].bookmarkedTuit._id, bookmarks[i].bookmarkedBy._id);
-            }
-
-            //Get All the tuits
-            const tuits = await this.tuitDao.findTuitsByUser(userToBeDeleted);
-
-            //Remove Likes
-            for (let i = 0; i < tuits.length; i++) {
-                await this.likeDao.userUnlikesTuitByTuit(tuits[i]._id);
-            }
-
-            await this.likeDao.userUnlikesTuitByUser(userToBeDeleted);
-
-            //Remove all the tuits by user
-            await this.tuitDao.deleteTuitByUserId(userToBeDeleted);
-
-            const user = await this.userDao.deleteUser(userToBeDeleted);
-            res.json(user);
-
         this.deleteUser(req,res)
             .then(status => res.json(status))
     }
@@ -325,7 +285,6 @@ export default class UserController implements IUserController {
      searchByUsername = (req: Request, res: Response) =>
      this.userDao.findUsersByUsername(req.params.username)
          .then(users => {            
-            console.log("got to search by");
              const sortedUsers = users.sort((a: User, b: User) => a.username > b.username ? 1 : -1)
              res.json(sortedUsers)
          })
