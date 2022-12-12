@@ -24,7 +24,7 @@ export default class BookmarkController implements IBookmarkController {
     /**
       * Creates controller instance
       * @param {Express} app Express instance to declare the RESTful Web service
-      * @param {IBookmarkDao} IBookmarkDao Singleton DAO implementing bookmarks CRUD operations
+      * @param {IBookmarkDao} bookmarkDao Singleton DAO implementing bookmarks CRUD operations
       * API
       * @return BookmarkController
       */
