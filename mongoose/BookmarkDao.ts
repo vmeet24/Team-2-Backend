@@ -16,12 +16,13 @@ export default class BookmarkDao implements IBookmarkDao {
      * @returns Promise To be notified when the bookmarks are retrieved from database
      */
     async findTuitBookmarkedByUser(uid: string, tid: string): Promise<Bookmark | null> {
-        return BookmarkModel.findOne({ bookmarkedBy: uid, bookmarkedTuit: tid }).populate({
-            path: "bookmarkedTuit",
-            populate: {
-            path: "postedBy",
-            model: UserModel
-            }
+        return BookmarkModel.findOne({ bookmarkedBy: uid, bookmarkedTuit: tid })
+            .populate({
+                path: "bookmarkedTuit",
+                populate: {
+                    path: "postedBy",
+                    model: UserModel
+                }
             }).exec();
     }
 
@@ -33,7 +34,13 @@ export default class BookmarkDao implements IBookmarkDao {
      * @returns Promise To be notified when the bookmarks are retrieved from database
      */
     async findAllTuitsBookmarkedByUser(uid: string): Promise<Bookmark[]> {
-        return BookmarkModel.find({ bookmarkedBy: uid }).populate("bookmarkedTuit").exec();
+        return BookmarkModel.find({ bookmarkedBy: uid }).populate({
+            path: "bookmarkedTuit",
+            populate: {
+                path: "postedBy",
+                model: UserModel
+            }
+        }).exec();
     }
 
     /**
